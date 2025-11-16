@@ -1,4 +1,7 @@
 /* ASSIGNMENT 1 */
+
+/* SECTION 1 uploaded to Cohort 8 > images > SQL - Assignment 1 Section 18 */
+
 /* SECTION 2 */
 
 
