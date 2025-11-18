@@ -96,6 +96,16 @@ WHERE visit_number = 1
 /* 3. Using a COUNT() window function, include a value along with each row of the 
 customer_purchases table that indicates how many different times that customer has purchased that product_id. */
 
+SELECT DISTINCT
+c.customer_first_name, 
+c.customer_last_name, 
+cp.product_id, 
+count ()
+OVER
+ (PARTITION by cp.customer_id ORDER by product_id) as product_purchase_qty
+FROM customer_purchases as cp
+INNER JOIN customer as c
+ON c.customer_id = cp.customer_id
 
 
 -- String manipulations
