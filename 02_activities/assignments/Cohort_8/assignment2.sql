@@ -39,11 +39,57 @@ each new market date for each customer, or select only the unique market dates p
 (without purchase details) and number those visits. 
 HINT: One of these approaches uses ROW_NUMBER() and one uses DENSE_RANK(). */
 
+SELECT
+c.customer_first_name,
+c.customer_last_name,
+cp.market_date,
+row_number () OVER (PARTITION by cp.customer_id
+ORDER by cp.market_date) as visit_number
+FROM customer_purchases as cp
+INNER JOIN customer as c
+ON cp.customer_id = c.customer_id
+
+SELECT DISTINCT
+c.customer_first_name, 
+c.customer_last_name, 
+cp.market_date, 
+dense_rank () 
+OVER
+ (PARTITION by cp.customer_id ORDER by cp.market_date) as visit_number 
+ FROM customer_purchases as cp 
+ INNER JOIN customer as c ON 
+ cp.customer_id = c.customer_id
+
 
 
 /* 2. Reverse the numbering of the query from a part so each customer’s most recent visit is labeled 1, 
 then write another query that uses this one as a subquery (or temp table) and filters the results to 
 only the customer’s most recent visit. */
+
+SELECT DISTINCT
+c.customer_first_name, 
+c.customer_last_name, 
+cp.market_date, 
+dense_rank () 
+OVER
+ (PARTITION by cp.customer_id ORDER by  cp.market_date DESC) as visit_number 
+ FROM customer_purchases as cp 
+ INNER JOIN customer as c ON 
+ cp.customer_id = c.customer_id
+
+SELECT *
+FROM (SELECT DISTINCT
+c.customer_first_name, 
+c.customer_last_name, 
+cp.market_date, 
+dense_rank () 
+OVER
+ (PARTITION by cp.customer_id ORDER by cp.market_date DESC) as visit_number 
+ FROM customer_purchases as cp 
+ INNER JOIN customer as c ON 
+ cp.customer_id = c.customer_id) as visit_ranked
+WHERE visit_number = 1
+
 
 
 
