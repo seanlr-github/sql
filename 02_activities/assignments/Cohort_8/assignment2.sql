@@ -243,7 +243,7 @@ DELETE FROM product_units
 WHERE ROWID = (
 SELECT ROWID
 FROM product_units
-WHERE (product_name = 'Apple Pie')
+WHERE (product_name = trim('Apple Pie'))
 ORDER by timestamp ASC
 LIMIT 1);
 SELECT *
@@ -253,6 +253,8 @@ FROM product_units
 -- UPDATE
 /* 1.We want to add the current_quantity to the product_units table. 
 First, add a new column, current_quantity to the table using the following syntax.
+
+
 
 ALTER TABLE product_units
 ADD current_quantity INT;
@@ -266,6 +268,21 @@ Third, SET current_quantity = (...your select statement...), remembering that WH
 Finally, make sure you have a WHERE statement to update the right row, 
 	you'll need to use product_units.product_id to refer to the correct row within the product_units table. 
 When you have all of these components, you can run the update statement. */
+
+ALTER TABLE product_units
+ADD current_quantity INT;
+
+UPDATE product_units as pu
+SET current_quantity =  
+coalesce(
+(SELECT quantity 
+FROM vendor_inventory as vi
+WHERE vi.product_id = pu.product_id
+ORDER BY quantity DESC
+LIMIT 1), 0);
+
+SELECT *
+FROM product_units;
 
 
 
