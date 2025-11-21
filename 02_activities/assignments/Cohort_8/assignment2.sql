@@ -120,10 +120,30 @@ Remove any trailing or leading whitespaces. Don't just use a case statement for 
 
 Hint: you might need to use INSTR(product_name,'-') to find the hyphens. INSTR will help split the column. */
 
+SELECT
+product_name,
+TRIM (
+CASE
+WHEN instr(product_name, '-') > 0 
+THEN substr(product_name, instr(product_name, '-') + 1) 
+ END)
+AS description
+FROM product
 
 
 /* 2. Filter the query to show any product_size value that contain a number with REGEXP. */
 
+SELECT
+product_name,
+product_size,
+TRIM (
+CASE
+WHEN instr(product_name, '-') > 0 
+THEN substr(product_name, instr(product_name, '-') + 1) 
+ END)
+AS description
+FROM product
+WHERE product_size REGEXP '[0-9]'
 
 
 -- UNION
@@ -136,6 +156,39 @@ HINT: There are a possibly a few ways to do this query, but if you're struggling
 3) Query the second temp table twice, once for the best day, once for the worst day, 
 with a UNION binding them. */
 
+SELECT 
+market_date,
+total_sales,
+ranking_order, 
+'Highest Total Sales' as sales_label
+FROM (
+SELECT DISTINCT
+market_date,
+vendor_id,
+sum(quantity*cost_to_customer_per_qty) as total_sales,
+row_number () OVER(ORDER By sum(quantity*cost_to_customer_per_qty) DESC) as ranking_order
+FROM customer_purchases
+GROUP BY market_date)
+
+WHERE ranking_order = 1
+
+UNION 
+
+SELECT 
+market_date,
+total_sales,
+ranking_order,
+'Lowest Total Sales' as sales_label
+FROM (
+SELECT DISTINCT
+market_date,
+vendor_id,
+sum(quantity*cost_to_customer_per_qty) as total_sales,
+row_number () OVER(ORDER By sum(quantity*cost_to_customer_per_qty) ASC) as ranking_order
+FROM customer_purchases
+GROUP BY market_date)
+
+WHERE ranking_order = 1 
 
 
 
@@ -154,16 +207,30 @@ Before your final group by you should have the product of those two queries (x*y
 
 
 
+
+
 -- INSERT
 /*1.  Create a new table "product_units". 
 This table will contain only products where the `product_qty_type = 'unit'`. 
 It should use all of the columns from the product table, as well as a new column for the `CURRENT_TIMESTAMP`.  
 Name the timestamp column `snapshot_timestamp`. */
 
+CREATE TABLE product_units as 
+SELECT 
+*,
+CURRENT_TIMESTAMP as timestamp
+FROM product
+WHERE product_qty_type = 'unit'
 
 
 /*2. Using `INSERT`, add a new row to the product_units table (with an updated timestamp). 
 This can be any product you desire (e.g. add another record for Apple Pie). */
+
+
+INSERT INTO product_units (product_id, product_name, product_size, product_category_id, product_qty_type, timestamp)
+VALUES ('7', 'Apple Pie', '11"', '3', 'unit', CURRENT_TIMESTAMP);
+SELECT *
+FROM product_units
 
 
 
@@ -172,6 +239,15 @@ This can be any product you desire (e.g. add another record for Apple Pie). */
 
 HINT: If you don't specify a WHERE clause, you are going to have a bad time.*/
 
+DELETE FROM product_units
+WHERE ROWID = (
+SELECT ROWID
+FROM product_units
+WHERE (product_name = 'Apple Pie')
+ORDER by timestamp ASC
+LIMIT 1);
+SELECT *
+FROM product_units
 
 
 -- UPDATE
